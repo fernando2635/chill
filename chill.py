@@ -69,6 +69,22 @@ async def play_next_song(guild, voice_client):
         song_queue.extend(chill_playlist)
         await play_next_song(guild, voice_client)
 
+@bot.command(name='connect', help='Conecta al bot al canal de voz especificado por ID')
+async def connect(ctx, channel_id: int):
+    # Obtener el canal de voz por su ID
+    channel = ctx.guild.get_channel(channel_id)
+    if isinstance(channel, discord.VoiceChannel):
+        # Si el bot ya está en otro canal de voz, desconéctalo
+        if ctx.voice_client:
+            await ctx.voice_client.disconnect()
+        
+        # Conectar al canal de voz
+        await channel.connect()
+        await ctx.send(f"Conectado al canal de voz: {channel.name}")
+    else:
+        await ctx.send("No se encontró un canal de voz con esa ID.")
+
+
 # Comando para desconectar al bot manualmente
 @bot.command(name='disconnect', help='Desconecta al bot del canal de voz')
 async def disconnect(ctx):
