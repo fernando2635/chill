@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import youtube_dl
 import asyncio
-import youtube_dl
 from dotenv import load_dotenv
 
 # Cargar el token desde el archivo .env
