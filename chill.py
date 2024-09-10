@@ -14,6 +14,17 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='*', intents=intents)
 
+# Configura youtube_dl para extraer audio
+ytdl_options = {
+    'format': 'bestaudio/best',
+    'noplaylist': True,
+}
+
+ffmpeg_options = {
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'options': '-vn',
+}
+
 # Configuración del canal de voz específico por ID y lista de canciones chill
 VOICE_CHANNEL_ID = 1282832608375341086  # Reemplaza con la ID de tu canal de voz específico
 chill_playlist = [
