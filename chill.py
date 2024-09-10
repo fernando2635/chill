@@ -33,8 +33,10 @@ ytdl_format_options = {
 }
 
 ffmpeg_options = {
-    'options': '-vn'
+    'options': '-vn',
+    'ffmpeg_location': '/path/to/ffmpeg'  # Cambia esto a la ubicación real de ffmpeg
 }
+
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
