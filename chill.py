@@ -43,6 +43,17 @@ def setup_ffmpeg():
     else:
         print('FFmpeg ya está configurado.')
 
+# Descargar y extraer FFmpeg
+def setup_ffmpeg():
+    if not os.path.exists(extracted_path):
+        gdown.download(google_drive_url, output_path, quiet=False)
+        with tarfile.open(output_path, 'r:xz') as tar:
+            tar.extractall()
+        os.remove(output_path)
+        print(f'FFmpeg extraído en {extracted_path}')
+    else:
+        print('FFmpeg ya está configurado.')
+
 @bot.event
 async def on_ready():
     setup_ffmpeg()
@@ -62,12 +73,7 @@ ytdl_format_options = {
     }],
     'noplaylist': True,
     'quiet': True,
-    'extract_flat': True,
-}
-
-ffmpeg_options = {
-    'executable': ffmpeg_executable,
-    'options': '-vn',
+    'extract_flat': True,  # Agregado para evitar problemas de extracción
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
@@ -103,14 +109,6 @@ async def connect_and_play(channel):
     except discord.errors.ConnectionClosed as e:
         print(f"Error de conexión: {e}. Reintentando en 5 segundos...")
         await asyncio.sleep(5)
-        await connect_and_play(channel)
-
-@bot.event
-async def on_ready():
-    print(f'Bot {bot.user.name} está listo y conectado!')
-    channel = bot.get_channel(VOICE_CHANNEL_ID)
-    
-    if channel:
         await connect_and_play(channel)
 
 # Iniciar el bot
