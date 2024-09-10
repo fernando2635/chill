@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord.utils import get
 import youtube_dl
 import os
+import requests
 from dotenv import load_dotenv
 
 # Cargar el token desde el archivo .env
@@ -98,6 +99,19 @@ async def disconnect(ctx):
         await ctx.send("Desconectado del canal de voz.")
     else:
         await ctx.send("El bot no está conectado a ningún canal de voz.")
+
+@bot.command(name='check_internet', help='Verifica la conexión a Internet')
+async def check_internet(ctx):
+    try:
+        response = requests.get('https://www.google.com', timeout=5)
+        if response.status_code == 200:
+            await ctx.send("Conexión a Internet: ¡OK!")
+        else:
+            await ctx.send("Conexión a Internet: Fallo en la solicitud.")
+    except requests.ConnectionError:
+        await ctx.send("Conexión a Internet: No se puede conectar.")
+    except Exception as e:
+        await ctx.send(f"Error al verificar la conexión a Internet: {e}")
 
 # Iniciar el bot
 bot.run(TOKEN)
