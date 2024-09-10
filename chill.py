@@ -118,6 +118,18 @@ async def play(ctx, url: str = None):
         else:
             await ctx.send("Debes estar en un canal de voz o conectar el bot primero.")
 
+
+@bot.command(name='stop', help='Detiene la reproducción de música y desconecta al bot del canal de voz')
+async def stop(ctx):
+    voice_client = get(bot.voice_clients, guild=ctx.guild)
+    if voice_client and voice_client.is_connected():
+        voice_client.stop()  # Detiene la reproducción de música
+        await voice_client.disconnect()  # Desconecta del canal de voz
+        await ctx.send("Detenido y desconectado del canal de voz.")
+    else:
+        await ctx.send("El bot no está conectado a ningún canal de voz.")
+
+
 @bot.command(name='queue', help='Muestra la lista de reproducción actual.')
 async def queue(ctx):
     if len(song_queue) == 0:
