@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import lavalink
 import os
 from dotenv import load_dotenv
 import youtube_dl
