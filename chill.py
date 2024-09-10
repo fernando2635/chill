@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.utils import get
-import youtube_dl
+import yt_dlp as youtube_dl  # Usando yt-dlp en lugar de youtube_dl
 import os
 import requests
 import asyncio
@@ -113,6 +113,21 @@ async def play(ctx, url: str = None):
             await play_next_song(ctx.guild, voice_client)
     else:
         await ctx.send("El bot no está conectado a un canal de voz.")
+
+@bot.command(name='queue', help='Muestra la lista de reproducción actual.')
+async def queue(ctx):
+    if len(song_queue) == 0:
+        await ctx.send("La lista de reproducción está vacía.")
+    else:
+        queue_list = '\n'.join([f"{i+1}. {url}" for i, url in enumerate(song_queue)])
+        await ctx.send(f"Lista de reproducción actual:\n{queue_list}")
+
+@bot.command(name='nowplaying', help='Muestra la canción que se está reproduciendo actualmente.')
+async def now_playing(ctx):
+    if current_song:
+        await ctx.send(f"🎶 Ahora reproduciendo: {current_song}")
+    else:
+        await ctx.send("No hay ninguna canción reproduciéndose actualmente.")
 
 @bot.command(name='connect', help='Conecta al bot al canal de voz especificado por ID')
 async def connect(ctx, channel_id: int):
