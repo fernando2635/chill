@@ -4,6 +4,7 @@ from discord.utils import get
 import youtube_dl
 import os
 import requests
+import asyncio
 from dotenv import load_dotenv
 
 # Cargar el token desde el archivo .env
