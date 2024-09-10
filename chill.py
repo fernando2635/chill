@@ -69,15 +69,25 @@ async def play_next_song(guild, voice_client):
     if len(song_queue) > 0:
         url = song_queue.pop(0)  # Extrae la primera canción de la cola y la elimina
 
-        # Descargar la canción con youtube_dl
-        ydl_opts = {'format': 'bestaudio', 'noplaylist': 'True'}
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            url2 = info['formats'][0]['url']
-            title = info['title']
+        # Descargar la canción con yt-dlp
+        with youtube_dl.YoutubeDL(ytdl_opts) as ydl:
+            try:
+                info = ydl.extract_info(url, download=False)
+                url2 = info['url']
+                title = info['title']
+            except Exception as e:
+                print(f"Error al extraer la URL de la canción: {e}")
+                await play_next_song(guild, voice_client)  # Intenta reproducir la siguiente canción
+                return
         
         # Reproduce la canción
-        voice_client.play(discord.FFmpegPCMAudio(url2), after=lambda e: bot.loop.create_task(play_next_song(guild, voice_client)))
+        def after_playing(error):
+            if error:
+                print(f"Error en la reproducción: {error}")
+            # Llama a la siguiente canción después de terminar la reproducción
+            bot.loop.create_task(play_next_song(guild, voice_client))
+
+        voice_client.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options), after=after_playing)
         print(f"Reproduciendo: {title}")
         
         # Enviar mensaje de que la canción se está reproduciendo (opcional)
