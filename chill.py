@@ -10,7 +10,10 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
 # Configuración del bot
+# Configuración de intents para permitir la lectura de contenido de mensajes
 intents = discord.Intents.default()
+intents.message_content = True  # Activar la intención de contenido de mensajes
+
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Reemplaza con el ID de tu canal de voz
