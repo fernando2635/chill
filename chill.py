@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 import asyncio
 from dotenv import load_dotenv
-import youtube_dl
+import yt_dlp as youtube_dl  # Asegúrate de usar yt-dlp en lugar de youtube_dl
 
 # Configuración del bot
 intents = discord.Intents.default()
@@ -73,7 +73,12 @@ ytdl_format_options = {
     }],
     'noplaylist': True,
     'quiet': True,
-    'extract_flat': True,  # Agregado para evitar problemas de extracción
+    'extract_flat': True,
+}
+
+ffmpeg_options = {
+    'executable': ffmpeg_executable,
+    'options': '-vn',
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
@@ -111,6 +116,13 @@ async def connect_and_play(channel):
         await asyncio.sleep(5)
         await connect_and_play(channel)
 
+@bot.event
+async def on_ready():
+    print(f'Bot {bot.user.name} está listo y conectado!')
+    channel = bot.get_channel(VOICE_CHANNEL_ID)
+
+    if channel:
+        await connect_and_play(channel)
 # Iniciar el bot
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
