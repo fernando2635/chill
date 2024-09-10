@@ -89,6 +89,21 @@ async def play_next_song(guild, voice_client):
         song_queue.extend(chill_playlist)
         await play_next_song(guild, voice_client)
 
+
+@bot.command(name='play', help='Reproduce una canción desde YouTube o continúa la lista de reproducción.')
+async def play(ctx, url: str = None):
+    voice_client = get(bot.voice_clients, guild=ctx.guild)
+    
+    if voice_client and voice_client.is_connected():
+        if url:
+            # Agregar URL a la cola y reproducir si está conectado
+            song_queue.insert(0, url)
+            await ctx.send(f"Agregada a la cola: {url}")
+        if not voice_client.is_playing():
+            await play_next_song(ctx.guild, voice_client)
+    else:
+        await ctx.send("El bot no está conectado a un canal de voz.")
+
 @bot.command(name='connect', help='Conecta al bot al canal de voz especificado por ID')
 async def connect(ctx, channel_id: int):
     # Obtener el canal de voz por su ID
