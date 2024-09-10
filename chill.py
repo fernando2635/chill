@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 # Cargar el token desde el archivo .env
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+# Reemplaza 'YOUR_VOICE_CHANNEL_ID' con el ID del canal de voz donde el bot reproducirá música
+VOICE_CHANNEL_ID = 1282832608375341086
+
 
 # Configuración del bot
 intents = discord.Intents.default()
