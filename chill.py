@@ -17,6 +17,7 @@ google_drive_url_ffmpeg = 'https://drive.google.com/file/d/1PMcOx6a1M0iXaViR5zhP
 google_drive_url_ffplay = 'https://drive.google.com/file/d/1m7mmKbdnJKN68Yqt-SeTE4vDkiCU5DHs/view?usp=drive_link'
 google_drive_url_ffprobe = 'https://drive.google.com/file/d/1jrBNOldmv-0BCakB8eV5olbI311U-piU/view?usp=drive_link'
 
+
 # Directorio para guardar los binarios de FFmpeg
 ffmpeg_bin_path = 'ffmpeg_bin'
 ffmpeg_executable = os.path.join(ffmpeg_bin_path, 'ffmpeg')
@@ -30,15 +31,20 @@ def setup_ffmpeg():
         print(f'Descargando FFmpeg...')
 
         # Descargar binarios de FFmpeg
-        gdown.download(google_drive_url_ffmpeg, ffmpeg_executable, quiet=False)
-        gdown.download(google_drive_url_ffplay, ffplay_executable, quiet=False)
-        gdown.download(google_drive_url_ffprobe, ffprobe_executable, quiet=False)
+        try:
+            gdown.download(google_drive_url_ffmpeg, ffmpeg_executable, quiet=False)
+            gdown.download(google_drive_url_ffplay, ffplay_executable, quiet=False)
+            gdown.download(google_drive_url_ffprobe, ffprobe_executable, quiet=False)
+        except Exception as e:
+            print(f"Error descargando FFmpeg: {e}")
 
         # Verificar que los archivos existen y hacerlos ejecutables
         for executable in [ffmpeg_executable, ffplay_executable, ffprobe_executable]:
             if os.path.exists(executable):
                 os.chmod(executable, 0o755)
                 print(f'{executable} se ha hecho ejecutable.')
+                # Imprimir permisos del archivo para verificar
+                print(f'Permisos de {executable}: {oct(os.stat(executable).st_mode)}')
             else:
                 print(f'Error: {executable} no se encontró después de la descarga.')
     else:
@@ -49,7 +55,7 @@ def list_ffmpeg_files():
     for root, dirs, files in os.walk(ffmpeg_bin_path):
         print(f'Archivos en {root}:')
         for file in files:
-            print(f' - {file}')
+            print(f' - {file} (Permisos: {oct(os.stat(os.path.join(root, file)).st_mode)})')
 
 @bot.event
 async def on_ready():
