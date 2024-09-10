@@ -26,6 +26,13 @@ ffmpeg_options = {
     'options': '-vn',
 }
 
+song_queue = [
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",  # Reemplaza con URLs válidas
+    "https://www.youtube.com/watch?v=3JZ_D3ELwOQ",
+]
+
+current_song_index = 0
+
 # Configuración del canal de voz específico por ID y lista de canciones chill
 VOICE_CHANNEL_ID = 1282832608375341086  # Reemplaza con la ID de tu canal de voz específico
 chill_playlist = [
