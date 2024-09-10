@@ -37,25 +37,28 @@ def setup_ffmpeg():
             gdown.download(google_drive_url_ffprobe, ffprobe_executable, quiet=False)
         except Exception as e:
             print(f"Error descargando FFmpeg: {e}")
+            return
 
-        # Verificar que los archivos existen y hacerlos ejecutables
-        for executable in [ffmpeg_executable, ffplay_executable, ffprobe_executable]:
-            if os.path.exists(executable):
-                os.chmod(executable, 0o755)
-                print(f'{executable} se ha hecho ejecutable.')
-                # Imprimir permisos del archivo para verificar
-                print(f'Permisos de {executable}: {oct(os.stat(executable).st_mode)}')
-            else:
-                print(f'Error: {executable} no se encontró después de la descarga.')
-    else:
-        print('FFmpeg ya está configurado.')
+    # Verificar que los archivos existen y hacerlos ejecutables
+    for executable in [ffmpeg_executable, ffplay_executable, ffprobe_executable]:
+        if os.path.exists(executable):
+            os.chmod(executable, 0o755)
+            print(f'{executable} se ha hecho ejecutable.')
+            # Imprimir permisos del archivo para verificar
+            print(f'Permisos de {executable}: {oct(os.stat(executable).st_mode)}')
+        else:
+            print(f'Error: {executable} no se encontró después de la descarga.')
 
 # Listar archivos para depuración
 def list_ffmpeg_files():
-    for root, dirs, files in os.walk(ffmpeg_bin_path):
-        print(f'Archivos en {root}:')
-        for file in files:
-            print(f' - {file} (Permisos: {oct(os.stat(os.path.join(root, file)).st_mode)})')
+    if os.path.exists(ffmpeg_bin_path):
+        for root, dirs, files in os.walk(ffmpeg_bin_path):
+            print(f'Archivos en {root}:')
+            for file in files:
+                file_path = os.path.join(root, file)
+                print(f' - {file} (Permisos: {oct(os.stat(file_path).st_mode)})')
+    else:
+        print('No se encontró el directorio ffmpeg_bin.')
 
 @bot.event
 async def on_ready():
