@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 import asyncio
 from dotenv import load_dotenv
+import youtube_dl
 
 # Configuración del bot
 intents = discord.Intents.default()
