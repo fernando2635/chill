@@ -79,8 +79,12 @@ async def connect(ctx, channel_id: int):
             await ctx.voice_client.disconnect()
         
         # Conectar al canal de voz
-        await channel.connect()
-        await ctx.send(f"Conectado al canal de voz: {channel.name}")
+        try:
+            await channel.connect()
+            await ctx.send(f"Conectado al canal de voz: {channel.name}")
+        except Exception as e:
+            await ctx.send(f"No se pudo conectar al canal de voz: {e}")
+            print(f"Error al conectar al canal de voz: {e}")
     else:
         await ctx.send("No se encontró un canal de voz con esa ID.")
 
