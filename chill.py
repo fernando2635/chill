@@ -1,42 +1,45 @@
 import discord
 from discord.ext import commands
-import os
-from dotenv import load_dotenv
 import youtube_dl
+import asyncio
+import youtube_dl
+from dotenv import load_dotenv
 
 # Cargar el token desde el archivo .env
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-bot = commands.Bot(command_prefix='!')
+# Configuración del bot
+intents = discord.Intents.default()
+bot = commands.Bot(command_prefix='!', intents=intents)
 
+# Reemplaza con el ID de tu canal de voz
+VOICE_CHANNEL_ID = 1282832608375341086  # ID del canal de voz donde el bot debe unirse
+YOUTUBE_URL = 'https://www.youtube.com/watch?v=jfKfPfyJRdk'  # Enlace a una transmisión en vivo de música chill
+
+# Configuración de yt-dlp y FFmpeg
 ytdl_format_options = {
-    'format': 'bapest',
-    'restrictfilenames': True,
+    'format': 'bestaudio/best',
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+    }],
     'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
     'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0'
 }
 
-ffmpeg_format_options = {
+ffmpeg_options = {
     'options': '-vn'
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
+
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
-
         self.data = data
-
-        self.title = data.get('title')
-        self.url = ""
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
@@ -47,7 +50,29 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
 
         filename = data['url'] if stream else ytdl.prepare_filename(data)
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_format_options), data=data)
+        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+
+
+@bot.event
+async def on_ready():
+    print(f'Bot {bot.user.name} está listo y conectado!')
+    channel = bot.get_channel(VOICE_CHANNEL_ID)
+    
+    if channel:
+        await play_music(channel)
+
+
+async def play_music(channel):
+    voice_client = discord.utils.get(bot.voice_clients, guild=channel.guild)
+    
+    if not voice_client:
+        voice_client = await channel.connect()
+
+    while True:
+        if not voice_client.is_playing():
+            player = await YTDLSource.from_url(YOUTUBE_URL, loop=bot.loop, stream=True)
+            voice_client.play(player)
+        await asyncio.sleep(5)  # Esperar un poco antes de verificar nuevamente
 
 @bot.command(name='play', help='Reproduce una canción de YouTube')
 async def play(ctx, url):
