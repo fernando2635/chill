@@ -14,7 +14,7 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Configuración del canal de voz específico por ID y lista de canciones chill
-VOICE_CHANNEL_ID = 123456789012345678  # Reemplaza con la ID de tu canal de voz específico
+VOICE_CHANNEL_ID = 1282832608375341086  # Reemplaza con la ID de tu canal de voz específico
 chill_playlist = [
     "https://www.youtube.com/watch?v=jfKfPfyJRdk",  # Lofi hip hop radio
     "https://www.youtube.com/watch?v=rUxyKA_-grg",  # Lofi Chill Music Mix
