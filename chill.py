@@ -1,7 +1,7 @@
 import os
 import discord
 from discord.ext import commands
-import youtube_dl
+import yt_dlp as youtube_dl  # Usa yt_dlp en lugar de youtube_dl
 import asyncio
 from dotenv import load_dotenv
 
@@ -29,6 +29,7 @@ ytdl_format_options = {
     }],
     'noplaylist': True,
     'quiet': True,
+    'extract_flat': True,  # Agregado para evitar problemas de extracción
 }
 
 ffmpeg_options = {
