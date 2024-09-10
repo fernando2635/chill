@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import asyncio
 import os
+from dotenv import load_dotenv
+
 # Cargar el token desde el archivo .env
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
