@@ -13,7 +13,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # URL de una estación de radio de música lofi/jazz
-RADIO_URL = "http://streamurl.com/yourstation"
+RADIO_URL = "https://mytuner-radio.com/es/emisora/smooth-jazz-instrumental-479346/"
 
 @bot.event
 async def on_ready():
