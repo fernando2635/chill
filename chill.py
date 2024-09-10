@@ -11,10 +11,10 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 # Configuración del bot
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='*', intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Configuración del canal de voz específico por ID y lista de canciones chill
-VOICE_CHANNEL_ID = 1282832608375341086  # Reemplaza con la ID de tu canal de voz específico
+VOICE_CHANNEL_ID = 123456789012345678  # Reemplaza con la ID de tu canal de voz específico
 chill_playlist = [
     "https://www.youtube.com/watch?v=jfKfPfyJRdk",  # Lofi hip hop radio
     "https://www.youtube.com/watch?v=rUxyKA_-grg",  # Lofi Chill Music Mix
@@ -43,15 +43,13 @@ ffmpeg_options = {
 async def on_ready():
     print(f'Conectado como {bot.user}!')
 
-    # Busca el canal de voz específico por su ID
+    # Conectar al canal de voz específico
     for guild in bot.guilds:
         channel = guild.get_channel(VOICE_CHANNEL_ID)
         if isinstance(channel, discord.VoiceChannel):
-            # Conectar al canal de voz específico
             voice_client = get(bot.voice_clients, guild=guild)
             if voice_client is None:
-                await channel.connect()
-                voice_client = get(bot.voice_clients, guild=guild)
+                voice_client = await channel.connect()
             await play_next_song(guild, voice_client)
             break
     else:
@@ -74,7 +72,6 @@ async def play_next_song(guild, voice_client):
                 await play_next_song(guild, voice_client)  # Intenta reproducir la siguiente canción
                 return
         
-        # Verificar si el cliente de voz está conectado y no está reproduciendo
         if not voice_client.is_playing():
             # Reproduce la canción
             def after_playing(error):
@@ -86,12 +83,9 @@ async def play_next_song(guild, voice_client):
             try:
                 print(f"Intentando reproducir: {current_song}")
                 voice_client.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options), after=after_playing)
-                print(f"Reproduciendo: {current_song}")
             except Exception as e:
                 print(f"Error al intentar reproducir: {e}")
                 await play_next_song(guild, voice_client)
-        else:
-            print("El bot ya está reproduciendo otra canción.")
         
         # Enviar mensaje de que la canción se está reproduciendo (opcional)
         channel = discord.utils.get(guild.text_channels, name='general')  # Cambia 'general' por el nombre de tu canal de texto
@@ -108,13 +102,11 @@ async def play(ctx, url: str = None):
     
     if voice_client and voice_client.is_connected():
         if url:
-            # Agregar URL a la cola y reproducir si está conectado
             song_queue.append(url)
             await ctx.send(f"Agregada a la cola: {url}")
         if not voice_client.is_playing():
             await play_next_song(ctx.guild, voice_client)
     else:
-        # Conectarse al canal de voz si no está conectado
         if ctx.author.voice:
             channel = ctx.author.voice.channel
             voice_client = await channel.connect()
