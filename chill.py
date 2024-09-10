@@ -12,9 +12,9 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Enlace de Google Drive a los archivos binarios de FFmpeg
-google_drive_url_ffmpeg = 'https://drive.google.com/uc?id=YOUR_FILE_ID_FFMPEG'
-google_drive_url_ffplay = 'https://drive.google.com/uc?id=YOUR_FILE_ID_FFPLAY'
-google_drive_url_ffprobe = 'https://drive.google.com/uc?id=YOUR_FILE_ID_FFPROBE'
+google_drive_url_ffmpeg = 'https://drive.google.com/file/d/1PMcOx6a1M0iXaViR5zhPnb5xt_rZSy4s/view?usp=drive_link'
+google_drive_url_ffplay = 'https://drive.google.com/file/d/1m7mmKbdnJKN68Yqt-SeTE4vDkiCU5DHs/view?usp=drive_link'
+google_drive_url_ffprobe = 'https://drive.google.com/file/d/1jrBNOldmv-0BCakB8eV5olbI311U-piU/view?usp=drive_link'
 
 # Directorio para guardar los binarios de FFmpeg
 ffmpeg_bin_path = 'ffmpeg_bin'
