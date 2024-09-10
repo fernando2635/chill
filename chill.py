@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.utils import get
-import yt_dlp as youtube_dl  # Usando yt-dlp en lugar de youtube_dl
+import yt_dlp as youtube_dl
 import os
 from dotenv import load_dotenv
 
@@ -14,7 +14,7 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Configuración del canal de voz específico por ID y lista de canciones chill
-VOICE_CHANNEL_ID = 1282832608375341086  # Reemplaza con la ID de tu canal de voz específico
+VOICE_CHANNEL_ID = 123456789012345678  # Reemplaza con la ID de tu canal de voz específico
 chill_playlist = [
     "https://www.youtube.com/watch?v=jfKfPfyJRdk",  # Lofi hip hop radio
     "https://www.youtube.com/watch?v=rUxyKA_-grg",  # Lofi Chill Music Mix
@@ -77,7 +77,6 @@ async def play_next_song(guild, voice_client):
             def after_playing(error):
                 if error:
                     print(f"Error en la reproducción: {error}")
-                # Llama a la siguiente canción después de terminar la reproducción
                 bot.loop.create_task(play_next_song(guild, voice_client))
 
             try:
@@ -118,18 +117,6 @@ async def play(ctx, url: str = None):
         else:
             await ctx.send("Debes estar en un canal de voz o conectar el bot primero.")
 
-
-@bot.command(name='stop', help='Detiene la reproducción de música y desconecta al bot del canal de voz')
-async def stop(ctx):
-    voice_client = get(bot.voice_clients, guild=ctx.guild)
-    if voice_client and voice_client.is_connected():
-        voice_client.stop()  # Detiene la reproducción de música
-        await voice_client.disconnect()  # Desconecta del canal de voz
-        await ctx.send("Detenido y desconectado del canal de voz.")
-    else:
-        await ctx.send("El bot no está conectado a ningún canal de voz.")
-
-
 @bot.command(name='queue', help='Muestra la lista de reproducción actual.')
 async def queue(ctx):
     if len(song_queue) == 0:
@@ -145,12 +132,13 @@ async def now_playing(ctx):
     else:
         await ctx.send("No hay ninguna canción reproduciéndose actualmente.")
 
-@bot.command(name='disconnect', help='Desconecta al bot del canal de voz')
-async def disconnect(ctx):
+@bot.command(name='stop', help='Detiene la reproducción de música y desconecta al bot del canal de voz')
+async def stop(ctx):
     voice_client = get(bot.voice_clients, guild=ctx.guild)
     if voice_client and voice_client.is_connected():
-        await voice_client.disconnect()
-        await ctx.send("Desconectado del canal de voz.")
+        voice_client.stop()  # Detiene la reproducción de música
+        await voice_client.disconnect()  # Desconecta del canal de voz
+        await ctx.send("Detenido y desconectado del canal de voz.")
     else:
         await ctx.send("El bot no está conectado a ningún canal de voz.")
 
