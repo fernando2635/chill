@@ -101,6 +101,22 @@ async def connect(ctx, channel_id: int):
     else:
         await ctx.send("No se encontró un canal de voz con esa ID.")
 
+@bot.command(name='resume', help='Reanuda la música pausada')
+async def resume(ctx):
+    if ctx.voice_client and ctx.voice_client.is_paused():
+        ctx.voice_client.resume()
+        await ctx.send("Música reanudada.")
+    else:
+        await ctx.send("No hay música pausada para reanudar.")
+
+@bot.command(name='pause', help='Pausa la música actual')
+async def pause(ctx):
+    if ctx.voice_client and ctx.voice_client.is_playing():
+        ctx.voice_client.pause()
+        await ctx.send("Música pausada.")
+    else:
+        await ctx.send("No hay música reproduciéndose para pausar.")
+
 
 # Comando para desconectar al bot manualmente
 @bot.command(name='disconnect', help='Desconecta al bot del canal de voz')
@@ -124,6 +140,12 @@ async def check_internet(ctx):
         await ctx.send("Conexión a Internet: No se puede conectar.")
     except Exception as e:
         await ctx.send(f"Error al verificar la conexión a Internet: {e}")
+
+@bot.command(name='restart', help='Reinicia el bot')
+async def restart(ctx):
+    await ctx.send("Reiniciando el bot...")
+    await bot.logout()  # Cierra la sesión del bot
+    os.system('chill.py')  # Reinicia el bot. Reemplaza 'your_script_name.py' con el nombre de tu archivo de bot
 
 # Iniciar el bot
 bot.run(TOKEN)
