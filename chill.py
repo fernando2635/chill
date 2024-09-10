@@ -62,20 +62,34 @@ async def on_ready():
     channel = bot.get_channel(VOICE_CHANNEL_ID)
     
     if channel:
-        await play_music(channel)
+        await connect_and_play(channel)
 
 
-async def play_music(channel):
-    voice_client = discord.utils.get(bot.voice_clients, guild=channel.guild)
-    
-    if not voice_client:
-        voice_client = await channel.connect()
+async def connect_and_play(channel):
+    try:
+        voice_client = discord.utils.get(bot.voice_clients, guild=channel.guild)
 
-    while True:
-        if not voice_client.is_playing():
-            player = await YTDLSource.from_url(YOUTUBE_URL, loop=bot.loop, stream=True)
-            voice_client.play(player)
-        await asyncio.sleep(5)  # Esperar un poco antes de verificar nuevamente
+        if not voice_client:
+            voice_client = await channel.connect()
+
+        while True:
+            if not voice_client.is_playing():
+                player = await YTDLSource.from_url(YOUTUBE_URL, loop=bot.loop, stream=True)
+                voice_client.play(player)
+            await asyncio.sleep(5)  # Esperar un poco antes de verificar nuevamente
+    except discord.errors.ConnectionClosed as e:
+        print(f"Error de conexión: {e}. Reintentando en 5 segundos...")
+        await asyncio.sleep(5)
+        await connect_and_play(channel)  # Reconectar
+
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    # Si el bot se desconecta del canal, volver a conectarlo
+    if member == bot.user and before.channel is not None and after.channel is None:
+        await asyncio.sleep(5)  # Esperar un poco antes de intentar reconectar
+        channel = bot.get_channel(VOICE_CHANNEL_ID)
+        await connect_and_play(channel)
 
 @bot.command(name='play', help='Reproduce una canción de YouTube')
 async def play(ctx, url):
