@@ -28,20 +28,25 @@ def setup_ffmpeg():
     if not os.path.exists(ffmpeg_bin_path):
         os.makedirs(ffmpeg_bin_path)
         print(f'Descargando FFmpeg...')
-        
+
         # Descargar binarios de FFmpeg
         gdown.download(google_drive_url_ffmpeg, os.path.join(ffmpeg_bin_path, 'ffmpeg'), quiet=False)
         gdown.download(google_drive_url_ffplay, os.path.join(ffmpeg_bin_path, 'ffplay'), quiet=False)
         gdown.download(google_drive_url_ffprobe, os.path.join(ffmpeg_bin_path, 'ffprobe'), quiet=False)
-        
+
         # Hacer los archivos ejecutables
-        os.chmod(ffmpeg_executable, 0o755)
-        os.chmod(ffplay_executable, 0o755)
-        os.chmod(ffprobe_executable, 0o755)
-        
+        for file in ['ffmpeg', 'ffplay', 'ffprobe']:
+            file_path = os.path.join(ffmpeg_bin_path, file)
+            if os.path.exists(file_path):
+                os.chmod(file_path, 0o755)
+                print(f'Archivo {file} es ejecutable.')
+            else:
+                print(f'Archivo {file} no encontrado.')
+
         print(f'FFmpeg y herramientas asociadas están listas.')
     else:
         print('FFmpeg ya está configurado.')
+
 
 # Descargar y extraer FFmpeg
 def setup_ffmpeg():
@@ -54,9 +59,18 @@ def setup_ffmpeg():
     else:
         print('FFmpeg ya está configurado.')
 
+
+def list_ffmpeg_files():
+    for root, dirs, files in os.walk(ffmpeg_bin_path):
+        print(f'Archivos en {root}:')
+        for file in files:
+            print(f' - {file}')
+
+# Llama a esta función en el on_ready() para verificar los archivos
 @bot.event
 async def on_ready():
     setup_ffmpeg()
+    list_ffmpeg_files()
     print(f'Bot {bot.user.name} está listo y conectado!')
 
 # Reemplaza con el ID de tu canal de voz
@@ -77,9 +91,10 @@ ytdl_format_options = {
 }
 
 ffmpeg_options = {
-    'executable': ffmpeg_executable,
+    'executable': ffmpeg_executable,  # Asegúrate de que esta ruta sea correcta
     'options': '-vn',
 }
+
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
