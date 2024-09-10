@@ -3,56 +3,98 @@ from discord.ext import commands
 import lavalink
 import os
 from dotenv import load_dotenv
+import youtube_dl
 
 # Cargar el token desde el archivo .env
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-# Configuración del bot
+bot = commands.Bot(command_prefix='!')
 
-# Configuración de tu bot (token, prefijo, etc.)
-bot = commands.Bot(command_prefix="!")
+ytdl_format_options = {
+    'format': 'bapest',
+    'restrictfilenames': True,
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0'
+}
 
-# Configuración de Lavalink
-lavalink.add_node('tu_host', tu_puerto, 'password', 'https://tu_lavalink', 'tu_region')
+ffmpeg_format_options = {
+    'options': '-vn'
+}
 
-# Evento para conectar Lavalink al bot
-@bot.event
-async def on_voice_state_update(member, before, after):
-    # Lógica para conectar y desconectar Lavalink según la actividad de voz
-    # ...
+ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
-# Comando de reproducción
-@bot.command()
-async def play(ctx, *, query):
-    # Lógica para buscar y reproducir la música
-    # ...
+class YTDLSource(discord.PCMVolumeTransformer):
+    def __init__(self, source, *, data, volume=0.5):
+        super().__init__(source, volume)
 
-# Otros comandos (pausa, reanudar, saltar, etc.)
-# ...
+        self.data = data
 
-# ... (código anterior)
+        self.title = data.get('title')
+        self.url = ""
 
-@bot.command()
-async def play(ctx, *, query):
-    voice_channel = ctx.author.voice.channel
-    if not voice_channel:
-        await ctx.send("Necesitas estar en un canal de voz")
-        return
+    @classmethod
+    async def from_url(cls, url, *, loop=None, stream=False):
+        loop = loop or asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
 
-    voice = get_voice_client(ctx)
-    if not voice:
-        voice = await voice_channel.connect()
+        if 'entries' in data:
+            data = data['entries'][0]
 
-    await ctx.send(f"Buscando: {query}")
-    results = await voice.search_yt(query, 1)
-    if results['loadType'] == 'LOAD_FAILED':
-        await ctx.send("No se encontró la canción")
+        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_format_options), data=data)
+
+@bot.command(name='play', help='Reproduce una canción de YouTube')
+async def play(ctx, url):
+    try:
+        server = ctx.message.guild
+        voice_channel = server.voice_client
+
+        async with ctx.typing():
+            player = await YTDLSource.from_url(url, loop=bot.loop)
+            voice_channel.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+
+        await ctx.send('**Now playing:** {}'.format(player.title))
+    except:
+        await ctx.send("El bot no está conectado a un canal de voz.")
+
+@bot.command(name='queue', help='Muestra la cola de reproducción actual')
+async def queue(ctx):
+    voice = ctx.voice_client
+    if voice:
+        await ctx.send('**Queue:** {}'.format(voice.source.data.get('title')))
     else:
-        await voice.play(results['tracks'][0])
-        await ctx.send(f"Reproduciendo: {results['tracks'][0]['info']['title']}")
+        await ctx.send("El bot no está conectado a un canal de voz.")
 
-# ... (otros comandos)
+@bot.command(name='skip', help='Salta la canción actual')
+async def skip(ctx):
+    voice = ctx.voice_client
+    if voice:
+        await voice.stop()
+        await ctx.send("**Skipped:** {}".format(voice.source.data.get('title')))
+    else:
+        await ctx.send("El bot no está conectado a un canal de voz.")
+
+@bot.command(name='stop', help='Detiene la reproducción de música')
+async def stop(ctx):
+    voice = ctx.voice_client
+    if voice:
+        await voice.stop()
+        await ctx.send("**Stopped:** {}".format(voice.source.data.get('title')))
+    else:
+        await ctx.send("El bot no está conectado a un canal de voz.")
+
+@bot.event
+async def on_ready():
+    channel = bot.get_channel(1282832608375341086)  # Reemplaza con el ID del canal de voz
+    await channel.connect()
+    print(f'{bot.user} has connected to Discord!')
     
 # Iniciar el bot
 bot.run(TOKEN)
