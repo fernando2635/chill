@@ -8,6 +8,7 @@ import asyncio
 # Configuración del bot
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix='!', intents=intents)
+VOICE_CHANNEL_NAME = '24/7'  # Reemplaza con el nombre del canal de voz
 
 # Configuración de youtube_dl
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -45,6 +46,20 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+
+@bot.event
+async def on_ready():
+    print(f'Bot conectado como {bot.user}')
+
+    # Buscar el canal de voz por nombre
+    for guild in bot.guilds:
+        channel = discord.utils.get(guild.voice_channels, name=VOICE_CHANNEL_NAME)
+        if channel:
+            voice_client = await channel.connect()
+            print(f"Bot conectado al canal de voz: {channel.name}")
+            break
+    else:
+        print(f"No se encontró un canal de voz con el nombre '{VOICE_CHANNEL_NAME}'."
 
 # Comando para unirse a un canal de voz y empezar a reproducir música
 @bot.command(name='play', help='Reproduce música desde YouTube.')
