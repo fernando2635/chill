@@ -6,4 +6,3 @@ ffmpeg-python==1.4
 youtube_dl==2021.12.17
 requests==2.32.3
 gdown==5.2.0
-ffmpeg==1.4
