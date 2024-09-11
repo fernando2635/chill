@@ -7,7 +7,9 @@ from dotenv import load_dotenv
 
 # Configuración del bot con intents
 intents = discord.Intents.default()
-intents.message_content = True
+intents.message_content = True  # Necesario para acceder al contenido del mensaje
+intents.guilds = True
+intents.voice_states = True  # Permite al bot escuchar los estados de voz
 bot = commands.Bot(command_prefix='!', intents=intents)
 VOICE_CHANNEL_NAME = '24/7'  # Reemplaza con el nombre del canal de voz
 
