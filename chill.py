@@ -3,8 +3,8 @@ from discord.ext import commands
 import youtube_dl
 import os
 import asyncio
+from dotenv import load_dotenv
 
-# Configuración del bot
 # Configuración del bot
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -47,23 +47,25 @@ class YTDLSource(discord.PCMVolumeTransformer):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
+# Cola de reproducción global
+queue = []
+
 @bot.event
 async def on_ready():
     print(f'Bot conectado como {bot.user}')
 
-    # Buscar el canal de voz por nombre
+    # Buscar el canal de voz por nombre y conectarse
     for guild in bot.guilds:
         channel = discord.utils.get(guild.voice_channels, name=VOICE_CHANNEL_NAME)
         if channel:
-            voice_client = await channel.connect()
+            await channel.connect()
             print(f"Bot conectado al canal de voz: {channel.name}")
             break
     else:
-        print(f"No se encontró un canal de voz con el nombre '{VOICE_CHANNEL_NAME}'."
+        print(f"No se encontró un canal de voz con el nombre '{VOICE_CHANNEL_NAME}'.")
 
-# Comando para unirse a un canal de voz y empezar a reproducir música
 @bot.command(name='play', help='Reproduce música desde YouTube.')
-async def play(ctx, *, url: str = 'https://www.youtube.com/watch?v=jfKfPfyJRdk'):  # URL predeterminada de Lofi
+async def play(ctx, *, url: str = 'https://www.youtube.com/watch?v=jfKfPfyJRdk'):
     if not ctx.voice_client:
         if ctx.author.voice:
             await ctx.author.voice.channel.connect()
@@ -73,18 +75,26 @@ async def play(ctx, *, url: str = 'https://www.youtube.com/watch?v=jfKfPfyJRdk')
 
     async with ctx.typing():
         player = await YTDLSource.from_url(url, loop=bot.loop, stream=True)
-        ctx.voice_client.play(player, after=lambda e: print(f'Error al reproducir: {e}') if e else None)
-    await ctx.send(f'Ahora reproduciendo: {player.title}')
+        queue.append(player)  # Agrega el video a la cola
 
-# Comando para detener la reproducción
+        if not ctx.voice_client.is_playing():
+            await play_next(ctx)  # Reproduce el siguiente video en la cola
+        else:
+            await ctx.send(f'Video añadido a la cola: {player.title}')
+
+async def play_next(ctx):
+    if len(queue) > 0:
+        player = queue.pop(0)  # Obtén el primer video en la cola
+        ctx.voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop).result())
+        await ctx.send(f'Ahora reproduciendo: {player.title}')
+    else:
+        await ctx.send('La cola de reproducción está vacía.')
+
 @bot.command(name='stop', help='Detiene la reproducción de música.')
 async def stop(ctx):
     if ctx.voice_client:
         await ctx.voice_client.disconnect()
 
-@bot.event
-async def on_ready():
-    print(f'{bot.user} ha iniciado sesión.')
 # Iniciar el bot
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
