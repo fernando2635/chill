@@ -102,6 +102,25 @@ async def stop(ctx):
     if ctx.voice_client:
         await ctx.voice_client.disconnect()
 
+@bot.command(name='queue', help='Muestra la lista de reproducción.')
+async def show_queue(ctx):
+    if not queue:
+        await ctx.send("La cola de reproducción está vacía.")
+    else:
+        queue_list = '\n'.join(f'{i + 1}. {item.title}' for i, item in enumerate(queue))
+        await ctx.send(f'Lista de reproducción:\n{queue_list}')
+
+@bot.command(name='ping', help='Verifica la conexión a Internet.')
+async def ping(ctx):
+    try:
+        response = requests.get('https://www.google.com/', timeout=5)
+        if response.status_code == 200:
+            await ctx.send("Conexión a Internet está funcionando.")
+        else:
+            await ctx.send("Problema con la conexión a Internet.")
+    except requests.RequestException:
+        await ctx.send("No se pudo conectar a Internet.")
+
 # Iniciar el bot
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
