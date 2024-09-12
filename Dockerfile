@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y ffmpeg
 # Crea un directorio de trabajo para el bot
 WORKDIR /app
 
-# Copia los archivos del bot al directorio de trabajo
+# Copiar el resto del código de la aplicación al contenedor
 COPY . .
 
 # Instala las dependencias de Python desde requirements.txt
