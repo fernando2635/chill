@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import youtube_dl
+import yt_dlp as youtube_dl
 import os
 import asyncio
 from dotenv import load_dotenv
@@ -13,8 +13,7 @@ intents.voice_states = True  # Permite al bot escuchar los estados de voz
 bot = commands.Bot(command_prefix='!', intents=intents)
 VOICE_CHANNEL_NAME = '24/7'  # Reemplaza con el nombre del canal de voz
 
-# Configuración de youtube_dl
-youtube_dl.utils.bug_reports_message = lambda: ''
+# Configuración de yt_dlp
 ytdl_format_options = {
     'format': 'bestaudio/best',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
@@ -50,8 +49,13 @@ class YTDLSource(discord.PCMVolumeTransformer):
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
+
 # Cola de reproducción global
-queue = []
+queue = [
+    "https://www.youtube.com/watch?v=sF80I-TQiW0&pp=ygUFY2hpbGw%3D"
+    "https://www.youtube.com/watch?v=d2VdpHxmbPE&pp=ygUFY2hpbGw%3D"
+    "https://www.youtube.com/watch?v=jfKfPfyJRdk&pp=ygUFY2hpbGw%3D"
+]
 
 @bot.event
 async def on_ready():
