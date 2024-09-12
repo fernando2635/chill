@@ -13,6 +13,7 @@ COPY . .
 # Instala las dependencias de Python desde requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --upgrade discord.py
+RUN pip install yt-dlp
 
 # Comando para ejecutar el bot de Discord
 CMD ["python", "chill.py"]
