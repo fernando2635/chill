@@ -51,9 +51,11 @@ class YTDLSource(discord.PCMVolumeTransformer):
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
-# Cola de reproducción global
+# Lista de reproducción global y la lista de repetición
 queue = []
-REPEAT_URL = "https://www.youtube.com/watch?v=jfKfPfyJRdk&pp=ygUFY2hpbGw%3D"
+repeat_list = [
+    "https://www.youtube.com/watch?v=jfKfPfyJRdk&pp=ygUFY2hpbGw%3D"
+]  # Esta es la lista de canciones que se repetirá al final
 
 @bot.event
 async def on_ready():
@@ -80,16 +82,12 @@ async def play(ctx, *, url: str = 'https://www.youtube.com/watch?v=jfKfPfyJRdk')
 
     async with ctx.typing():
         player = await YTDLSource.from_url(url, loop=bot.loop, stream=True)
-        
-        # Detener la reproducción actual si está en curso
-        if ctx.voice_client.is_playing():
-            ctx.voice_client.stop()
+        queue.insert(0, player)  # Agrega el video al inicio de la cola para darle prioridad
 
-        # Limpiar la cola y agregar el nuevo video
-        queue.clear()
-        queue.append(player)
-        
-        await play_next(ctx)  # Reproduce la canción actual
+        if not ctx.voice_client.is_playing():
+            await play_next(ctx)  # Reproduce el siguiente video en la cola
+        else:
+            await ctx.send(f'Video añadido a la cola: {player.title}')
 
 async def play_next(ctx):
     if len(queue) > 0:
@@ -97,21 +95,14 @@ async def play_next(ctx):
         ctx.voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop).result())
         await ctx.send(f'Ahora reproduciendo: {player.title}')
     else:
-        # Reproducir la canción de repetición al final
-        await play_from_url(ctx, REPEAT_URL)
-
-async def play_from_url(ctx, url):
-    player = await YTDLSource.from_url(url, loop=bot.loop, stream=True)
-    ctx.voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop).result())
-    await ctx.send(f'Ahora reproduciendo: {player.title}')
-
-@bot.command(name='next', help='Reproduce el siguiente video en la cola.')
-async def next(ctx):
-    if ctx.voice_client and ctx.voice_client.is_playing():
-        ctx.voice_client.stop()
-        await play_next(ctx)
-    else:
-        await ctx.send("No hay nada reproduciéndose actualmente.")
+        # Si la cola está vacía, reproducir la lista de repetición
+        if len(repeat_list) > 0:
+            player = await YTDLSource.from_url(repeat_list[0], loop=bot.loop, stream=True)
+            queue.extend([await YTDLSource.from_url(url, loop=bot.loop, stream=True) for url in repeat_list[1:]])
+            ctx.voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop).result())
+            await ctx.send(f'Ahora reproduciendo: {player.title}')
+        else:
+            await ctx.send('La lista de reproducción está vacía.')
 
 @bot.command(name='stop', help='Detiene la reproducción de música.')
 async def stop(ctx):
@@ -136,6 +127,41 @@ async def ping(ctx):
             await ctx.send("Problema con la conexión a Internet.")
     except requests.RequestException:
         await ctx.send("No se pudo conectar a Internet.")
+
+@bot.command(name='next', help='Salta a la siguiente canción en la cola.')
+async def next(ctx):
+    if ctx.voice_client and ctx.voice_client.is_playing():
+        ctx.voice_client.stop()  # Detiene la canción actual, activando el "after" para reproducir la siguiente.
+
+@bot.command(name='addrepeat', help='Agrega una canción a la lista de repetición.')
+async def add_to_repeat_list(ctx, *, url: str):
+    repeat_list.append(url)
+    await ctx.send(f"Agregada a la lista de repetición: {url}")
+
+@bot.command(name='removerepeat', help='Muestra la lista de repetición y permite eliminar una canción usando emojis.')
+async def remove_from_repeat_list(ctx):
+    if not repeat_list:
+        await ctx.send("La lista de repetición está vacía.")
+        return
+
+    # Muestra las canciones en la lista de repetición
+    repeat_list_message = '\n'.join(f"{i+1}. {url}" for i, url in enumerate(repeat_list))
+    message = await ctx.send(f"Lista de repetición:\n{repeat_list_message}\nReacciona con el número correspondiente para eliminar una canción.")
+
+    # Reacciones de números del 1 al número de canciones en la lista
+    for i in range(len(repeat_list)):
+        await message.add_reaction(f"{i+1}\u20E3")  # 1️⃣, 2️⃣, etc.
+
+    def check(reaction, user):
+        return user == ctx.author and str(reaction.emoji) in [f"{i+1}\u20E3" for i in range(len(repeat_list))]
+
+    try:
+        reaction, _ = await bot.wait_for('reaction_add', timeout=30.0, check=check)
+        index = int(reaction.emoji[0]) - 1  # Obtiene el índice a partir del emoji
+        removed_song = repeat_list.pop(index)
+        await ctx.send(f"Canción eliminada de la lista de repetición: {removed_song}")
+    except asyncio.TimeoutError:
+        await ctx.send("No se recibió una respuesta a tiempo. No se eliminó ninguna canción.")
 
 # Iniciar el bot
 load_dotenv()
