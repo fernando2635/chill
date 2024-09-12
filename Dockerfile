@@ -14,6 +14,7 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --upgrade discord.py
 RUN pip install yt-dlp
+RUN pip install ffmpeg
 
 # Comando para ejecutar el bot de Discord
 CMD ["python", "chill.py"]
