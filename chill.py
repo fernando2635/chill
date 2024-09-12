@@ -3,6 +3,7 @@ from discord.ext import commands
 import yt_dlp as youtube_dl
 import os
 import asyncio
+import requests
 from dotenv import load_dotenv
 
 # Configuración del bot con intents
@@ -51,11 +52,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
 
 # Cola de reproducción global
-queue = [
-    "https://www.youtube.com/watch?v=sF80I-TQiW0&pp=ygUFY2hpbGw%3D"
-    "https://www.youtube.com/watch?v=d2VdpHxmbPE&pp=ygUFY2hpbGw%3D"
-    "https://www.youtube.com/watch?v=jfKfPfyJRdk&pp=ygUFY2hpbGw%3D"
-]
+queue = []
+REPEAT_URL = "https://www.youtube.com/watch?v=jfKfPfyJRdk&pp=ygUFY2hpbGw%3D"
 
 @bot.event
 async def on_ready():
@@ -82,12 +80,16 @@ async def play(ctx, *, url: str = 'https://www.youtube.com/watch?v=jfKfPfyJRdk')
 
     async with ctx.typing():
         player = await YTDLSource.from_url(url, loop=bot.loop, stream=True)
-        queue.append(player)  # Agrega el video a la cola
+        
+        # Detener la reproducción actual si está en curso
+        if ctx.voice_client.is_playing():
+            ctx.voice_client.stop()
 
-        if not ctx.voice_client.is_playing():
-            await play_next(ctx)  # Reproduce el siguiente video en la cola
-        else:
-            await ctx.send(f'Video añadido a la cola: {player.title}')
+        # Limpiar la cola y agregar el nuevo video
+        queue.clear()
+        queue.append(player)
+        
+        await play_next(ctx)  # Reproduce la canción actual
 
 async def play_next(ctx):
     if len(queue) > 0:
@@ -95,7 +97,21 @@ async def play_next(ctx):
         ctx.voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop).result())
         await ctx.send(f'Ahora reproduciendo: {player.title}')
     else:
-        await ctx.send('La cola de reproducción está vacía.')
+        # Reproducir la canción de repetición al final
+        await play_from_url(ctx, REPEAT_URL)
+
+async def play_from_url(ctx, url):
+    player = await YTDLSource.from_url(url, loop=bot.loop, stream=True)
+    ctx.voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop).result())
+    await ctx.send(f'Ahora reproduciendo: {player.title}')
+
+@bot.command(name='next', help='Reproduce el siguiente video en la cola.')
+async def next(ctx):
+    if ctx.voice_client and ctx.voice_client.is_playing():
+        ctx.voice_client.stop()
+        await play_next(ctx)
+    else:
+        await ctx.send("No hay nada reproduciéndose actualmente.")
 
 @bot.command(name='stop', help='Detiene la reproducción de música.')
 async def stop(ctx):
