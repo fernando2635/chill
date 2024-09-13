@@ -107,7 +107,7 @@ async def play_next(ctx):
 @bot.command(name='stop', help='Detiene la reproducción de música.')
 async def stop(ctx):
     if ctx.voice_client:
-        await ctx.voice_client.disconnect()
+        ctx.voice_client.stop()  # Solo detiene la reproducción sin desconectar del canal
 
 @bot.command(name='queue', help='Muestra la lista de reproducción.')
 async def show_queue(ctx):
