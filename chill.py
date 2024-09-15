@@ -72,6 +72,21 @@ async def on_ready():
     # Iniciar el proceso de reconexión al canal 24/7
     bot.loop.create_task(ensure_voice_connection())
 
+# Nuevo comando connect
+@bot.command(name='connect', help='Conecta al bot al canal de voz en el que estás.')
+async def connect(ctx):
+    # Verificar si el usuario que invocó el comando está en un canal de voz
+    if ctx.author.voice:
+        channel = ctx.author.voice.channel
+        # Si el bot ya está conectado a un canal de voz
+        if ctx.voice_client:
+            await ctx.voice_client.move_to(channel)  # Mover el bot al canal del usuario
+        else:
+            await channel.connect()  # Conectar al bot al canal de voz del usuario
+        await ctx.send(f"Conectado al canal de voz: {channel.name}")
+    else:
+        await ctx.send("¡Debes estar en un canal de voz para usar este comando!")
+
 @bot.command(name='play', help='Reproduce música desde YouTube.')
 async def play(ctx, *, url: str = 'https://www.youtube.com/watch?v=jfKfPfyJRdk'):
     if not ctx.voice_client:
