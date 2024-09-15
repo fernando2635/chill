@@ -57,19 +57,20 @@ repeat_list = [
     "https://www.youtube.com/watch?v=jfKfPfyJRdk&pp=ygUFY2hpbGw%3D"
 ]  # Esta es la lista de canciones que se repetirá al final
 
+# Función para reconectar al canal de voz 24/7 si el bot es desconectado
+async def ensure_voice_connection():
+    while True:
+        for guild in bot.guilds:
+            channel = discord.utils.get(guild.voice_channels, name=VOICE_CHANNEL_NAME)
+            if channel and not bot.voice_clients:
+                await channel.connect()
+        await asyncio.sleep(30)  # Verifica cada 30 segundos si sigue conectado
+
 @bot.event
 async def on_ready():
     print(f'Bot conectado como {bot.user}')
-
-    # Buscar el canal de voz por nombre y conectarse
-    for guild in bot.guilds:
-        channel = discord.utils.get(guild.voice_channels, name=VOICE_CHANNEL_NAME)
-        if channel:
-            await channel.connect()
-            print(f"Bot conectado al canal de voz: {channel.name}")
-            break
-    else:
-        print(f"No se encontró un canal de voz con el nombre '{VOICE_CHANNEL_NAME}'.")
+    # Iniciar el proceso de reconexión al canal 24/7
+    bot.loop.create_task(ensure_voice_connection())
 
 @bot.command(name='play', help='Reproduce música desde YouTube.')
 async def play(ctx, *, url: str = 'https://www.youtube.com/watch?v=jfKfPfyJRdk'):
