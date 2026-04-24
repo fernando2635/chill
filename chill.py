@@ -12,7 +12,7 @@ intents.message_content = True  # Necesario para acceder al contenido del mensaj
 intents.guilds = True
 intents.voice_states = True  # Permite al bot escuchar los estados de voz
 bot = commands.Bot(command_prefix='!', intents=intents)
-VOICE_CHANNEL_NAME = '24/7'  # Reemplaza con el nombre del canal de voz
+# VOICE_CHANNEL_NAME = '24/7'  # Reemplaza con el nombre del canal de voz (DESACTIVADO)
 
 # Configuración de yt_dlp
 ytdl_format_options = {
@@ -58,19 +58,20 @@ repeat_list = [
 ]  # Esta es la lista de canciones que se repetirá al final
 
 # Función para reconectar al canal de voz 24/7 si el bot es desconectado
-async def ensure_voice_connection():
-    while True:
-        for guild in bot.guilds:
-            channel = discord.utils.get(guild.voice_channels, name=VOICE_CHANNEL_NAME)
-            if channel and not bot.voice_clients:
-                await channel.connect()
-        await asyncio.sleep(30)  # Verifica cada 30 segundos si sigue conectado
+# DESACTIVADA - El bot ahora se conecta donde el usuario lo invoca
+# async def ensure_voice_connection():
+#     while True:
+#         for guild in bot.guilds:
+#             channel = discord.utils.get(guild.voice_channels, name=VOICE_CHANNEL_NAME)
+#             if channel and not bot.voice_clients:
+#                 await channel.connect()
+#         await asyncio.sleep(30)  # Verifica cada 30 segundos si sigue conectado
 
 @bot.event
 async def on_ready():
     print(f'Bot conectado como {bot.user}')
-    # Iniciar el proceso de reconexión al canal 24/7
-    bot.loop.create_task(ensure_voice_connection())
+    # DESACTIVADA la reconexión automática
+    # bot.loop.create_task(ensure_voice_connection())
 
 # Nuevo comando connect
 @bot.command(name='connect', help='Conecta al bot al canal de voz en el que estás.')
